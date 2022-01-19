@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,8 @@ class ProductController extends AbstractController
     public function index(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
     {
         $products = $productRepository->findAll();
-        $json = $serializer->serialize($products, 'json');
+        $context = SerializationContext::create()->setGroups(["product:index"]);
+        $json = $serializer->serialize($products, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;
@@ -29,7 +31,8 @@ class ProductController extends AbstractController
     public function show(ProductRepository $productRepository, $id, SerializerInterface $serializer): JsonResponse
     {
         $product = $productRepository->find($id);
-        $json = $serializer->serialize($product, 'json');
+        $context = SerializationContext::create()->setGroups(["product:show"]);
+        $json = $serializer->serialize($product, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;
