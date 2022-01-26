@@ -15,26 +15,32 @@ class User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"user:index"})
+     * @Groups({"user:index","user:show"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"user:index"})
+     * @Groups({"user:index","user:show"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"user:index"})
+     * @Groups({"user:show","user:index"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"user:show"})
      */
     private $email;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
+     */
+    private $customer;
 
     public function getId(): ?int
     {
@@ -73,6 +79,18 @@ class User
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getCustomer(): ?Customer
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(?Customer $customer): self
+    {
+        $this->customer = $customer;
 
         return $this;
     }
