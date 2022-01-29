@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
 use JMS\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
@@ -22,6 +23,7 @@ class Product
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"product:index","product:show"})
+     * @Assert\NotBlank(message="you must enter a name")
      */
     private $name;
 
