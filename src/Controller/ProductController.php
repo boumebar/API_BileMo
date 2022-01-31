@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Service\PaginationService;
 use App\Repository\ProductRepository;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
@@ -15,11 +16,13 @@ class ProductController extends AbstractController
     /**
      * @Route("/api/products", name="api_products_index", methods="GET")
      */
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $paginator): JsonResponse
     {
-        $products = $productRepository->findAll();
+
+        $query = $productRepository->getProducts();
+        $result = $paginator->paginate($query, 10, 3);
         $context = SerializationContext::create()->setGroups(["product:index"]);
-        $json = $serializer->serialize($products, 'json', $context);
+        $json = $serializer->serialize($result, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;

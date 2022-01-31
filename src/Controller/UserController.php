@@ -4,8 +4,9 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\PaginationService;
 use JMS\Serializer\SerializerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,11 +18,13 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="api_user_index", methods="GET")
      */
-    public function index(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $paginator): JsonResponse
     {
-        $users = $userRepository->findAll();
+
+        $query = $userRepository->getUsers();
+        $result = $paginator->paginate($query, 2, 2);
         $context = SerializationContext::create()->setGroups(["user:index"]);
-        $json = $serializer->serialize($users, 'json', $context);
+        $json = $serializer->serialize($result, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;
