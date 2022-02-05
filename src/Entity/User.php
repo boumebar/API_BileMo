@@ -20,7 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      exclusion = @Hateoas\Exclusion(groups = {"user:index"})
  * )
  * @Hateoas\Relation(
- *     "POST",
+ *     "create",
  *     href =  @Hateoas\Route(
  *          "api_users_add",
  *          absolute = true
@@ -28,13 +28,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     exclusion = @Hateoas\Exclusion(groups={"user:index"})
  * )
  * @Hateoas\Relation(
- *     "DELETE",
+ *     "delete",
  *     href =  @Hateoas\Route(
  *          "api_users_delete",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user:index"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user:show","user:index"})
  * )
  */
 class User

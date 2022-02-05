@@ -20,12 +20,12 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="api_user_index", methods="GET")
      */
-    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $paginator): JsonResponse
+    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $paginator, Request $request): JsonResponse
     {
         /** @var User */
         $connnectedUser = $this->getUser();
         $query = $userRepository->findByCustomerId($connnectedUser->getId());
-        $result = $paginator->paginate($query, 5);
+        $result = $paginator->paginate($request, $query, 5);
         $context = SerializationContext::create()->setGroups(["user:index"]);
         $json = $serializer->serialize($result, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);
@@ -42,7 +42,7 @@ class UserController extends AbstractController
         /** @var User */
         $connnectedUser = $this->getUser();
         if ($connnectedUser->getId() !==  $user->getCustomer()->getId()) {
-            throw new JsonException("You do not have the required rights to make this request", JsonResponse::HTTP_UNAUTHORIZED);
+            throw new JsonException("you do not have access to this resource", JsonResponse::HTTP_UNAUTHORIZED);
         }
         $context = SerializationContext::create()->setGroups(["user:show"]);
         $json = $serializer->serialize($user, 'json', $context);
@@ -56,21 +56,25 @@ class UserController extends AbstractController
      */
     public function add(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator)
     {
+        /** @var User*/
+        $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+        $user->setCustomer($this->getUser());
 
-        $data = $request->getContent();
+        $errors = $validator->validate($user);
 
-        // $errors = $validator->validate($data);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
 
-        // if ($errors->count() > 0) {
-        //     return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-        // }
 
-        $user = $serializer->deserialize($data, User::class, 'json');
         /** @var User */
         $connnectedUser = $this->getUser();
+
         if ($connnectedUser->getId() !==  $user->getCustomer()->getId()) {
             throw new JsonException("You do not have the required rights to make this request", JsonResponse::HTTP_UNAUTHORIZED);
         }
+
+
         $em->persist($user);
         $em->flush();
 

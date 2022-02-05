@@ -7,6 +7,7 @@ use App\Service\PaginationService;
 use App\Repository\ProductRepository;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,10 +17,10 @@ class ProductController extends AbstractController
     /**
      * @Route("/api/products", name="api_products_index", methods="GET")
      */
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $paginator): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $paginator, Request $request): JsonResponse
     {
         $query = $productRepository->getProducts();
-        $result = $paginator->paginate($query);
+        $result = $paginator->paginate($request, $query, 10);
         $context = SerializationContext::create()->setGroups(["product:index"]);
         $json = $serializer->serialize($result, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);

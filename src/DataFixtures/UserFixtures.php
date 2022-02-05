@@ -25,7 +25,7 @@ class UserFixtures extends Fixture
 
         $customers = $this->customerRepository->findAll();;
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 25; $i++) {
             $user = new User();
             $user->setLastname($faker->lastname())
                 ->setFirstname($faker->firstname())

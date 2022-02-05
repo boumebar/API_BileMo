@@ -4,16 +4,17 @@
 namespace App\Service;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 
 class PaginationService
 {
 
-    public function paginate($query, int $limit = 3, int $page = 1)
+    public function paginate(Request $request, $query, int $limit = 3)
     {
 
-
+        $page = (int)($request->get('page')) ?: 1;
         $paginator = new Paginator($query);
         $offset = (int) ($page - 1) * $limit;
         $data = $paginator
