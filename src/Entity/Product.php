@@ -5,10 +5,22 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
 use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "api_products_show",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups = {"product:index"})
+ * )
+ 
+ * 
  */
 class Product
 {
@@ -35,7 +47,7 @@ class Product
 
     /**
      * @ORM\Column(type="float")
-     * @Groups({"product:show"})
+     * @Groups({"product:index","product:show"})
      */
     private $price;
 

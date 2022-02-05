@@ -18,9 +18,8 @@ class ProductController extends AbstractController
      */
     public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $paginator): JsonResponse
     {
-
         $query = $productRepository->getProducts();
-        $result = $paginator->paginate($query, 10, 3);
+        $result = $paginator->paginate($query);
         $context = SerializationContext::create()->setGroups(["product:index"]);
         $json = $serializer->serialize($result, 'json', $context);
         $response = new JsonResponse($json, 200, [], true);

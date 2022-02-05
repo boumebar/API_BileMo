@@ -48,9 +48,11 @@ class UserRepository extends ServiceEntityRepository
     }
     */
     //query for user pagination
-    public function getUsers()
+    public function findByCustomerId($customerId)
     {
         return $this->createQueryBuilder('u')
+            ->where('u.customer = :customerId')
+            ->setParameter('customerId', $customerId)
             ->orderBy('u.id', 'ASC')
             ->getQuery();
     }
