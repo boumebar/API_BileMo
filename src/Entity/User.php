@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
-use JMS\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -16,16 +16,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "api_users_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(groups = {"user:index"})
+ *      )
  * )
  * @Hateoas\Relation(
  *     "create",
  *     href =  @Hateoas\Route(
  *          "api_users_add",
  *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user:index"})
+ *      )
  * )
  * @Hateoas\Relation(
  *     "delete",
@@ -33,9 +31,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "api_users_delete",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user:show","user:index"})
+ *      )
  * )
+ * 
+ * 
+ * @Serializer\ExclusionPolicy("all")
  */
 class User
 {
@@ -43,36 +43,36 @@ class User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"user:index","user:show"})
+     * @Serializer\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"user:index","user:show"})
      * @Assert\NotBlank(message="you must enter a lastname")
+     * @Serializer\Expose
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"user:show","user:index"})
      * @Assert\NotBlank(message="you must enter a firstname")
+     * @Serializer\Expose
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"user:show"})
      * @Assert\NotBlank(message="you must enter an email")
      * @Assert\Email(message="Your email is not a valid email address")
+     * @Serializer\Expose
      */
     private $email;
 
     /**
      * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"user:index","user:show"})
+     * @Serializer\Expose
      */
     private $customer;
 

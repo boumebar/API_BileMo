@@ -54,6 +54,7 @@ class UserRepository extends ServiceEntityRepository
             ->where('u.customer = :customerId')
             ->setParameter('customerId', $customerId)
             ->orderBy('u.id', 'ASC')
-            ->getQuery();
+            ->getQuery()
+            ->getResult();
     }
 }

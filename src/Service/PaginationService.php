@@ -3,41 +3,34 @@
 
 namespace App\Service;
 
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Pagerfanta\Pagerfanta;
+use Pagerfanta\Adapter\ArrayAdapter;
+use Hateoas\Configuration\Route as routing;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Hateoas\Representation\Factory\PagerfantaFactory;
 
 
 class PaginationService
 {
 
-    public function paginate(Request $request, $query, int $limit = 3)
+    public function paginate(Request $request, $item, int $limit, string $route)
     {
+        $adapter = new ArrayAdapter($item);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage((int)($request->get('limit')) ?: $limit);
+        $currentPage = (int)($request->get('page')) ?: 1;
+        $pagerfanta->setCurrentPage($currentPage);
 
-        $page = (int)($request->get('page')) ?: 1;
-        $paginator = new Paginator($query);
-        $offset = (int) ($page - 1) * $limit;
-        $data = $paginator
-            ->getQuery()
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getResult();
 
-        if ($page <= $this->lastPage($paginator)) {
+        $pagerfantaFactory   = new PagerfantaFactory(); // you can pass the page,
+        // and limit parameters name
 
-            return $data;
-        }
 
-        throw new NotFoundHttpException("Only " . $this->lastPage($paginator) . " pages available");
-    }
+        $paginatedCollection = $pagerfantaFactory->createRepresentation(
+            $pagerfanta,
+            new routing($route, array())
+        );
 
-    public function total(Paginator $paginator)
-    {
-        return $paginator->count();
-    }
-
-    public function lastPage(Paginator $paginator)
-    {
-        return ceil($paginator->count() / $paginator->getQuery()->getMaxResults());
+        return $paginatedCollection;
     }
 }

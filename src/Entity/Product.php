@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
+use JMS\Serializer\Annotation as Serializer;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
-use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -16,10 +16,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "api_products_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(groups = {"product:index"})
+ *      )
  * )
- 
+ * @Serializer\ExclusionPolicy("all")
  * 
  */
 class Product
@@ -28,26 +27,26 @@ class Product
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"product:index","product:show"})
+     * @Serializer\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"product:index","product:show"})
      * @Assert\NotBlank(message="you must enter a name")
+     * @Serializer\Expose
      */
     private $name;
 
     /**
      * @ORM\Column(type="text")
-     * @Groups({"product:show"})
+     * @Serializer\Expose
      */
     private $description;
 
     /**
      * @ORM\Column(type="float")
-     * @Groups({"product:index","product:show"})
+     * @Serializer\Expose
      */
     private $price;
 

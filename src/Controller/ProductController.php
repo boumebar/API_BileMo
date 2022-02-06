@@ -3,13 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Product;
-use App\Service\PaginationService;
 use App\Repository\ProductRepository;
+use App\Service\PaginationService;
 use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Exception\JsonException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProductController extends AbstractController
@@ -17,14 +17,13 @@ class ProductController extends AbstractController
     /**
      * @Route("/api/products", name="api_products_index", methods="GET")
      */
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $paginator, Request $request): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $pagination, Request $request): JsonResponse
     {
-        $query = $productRepository->getProducts();
-        $result = $paginator->paginate($request, $query, 10);
-        $context = SerializationContext::create()->setGroups(["product:index"]);
-        $json = $serializer->serialize($result, 'json', $context);
-        $response = new JsonResponse($json, 200, [], true);
+        $products = $productRepository->findAll();
 
+        $paginatedCollection = $pagination->paginate($request, $products, 5, 'api_products_index');
+        $json = $serializer->serialize($paginatedCollection, 'json');
+        $response = new JsonResponse($json, 200, [], true);
         return $response;
     }
 
@@ -34,8 +33,11 @@ class ProductController extends AbstractController
     public function show(ProductRepository $productRepository, $id, SerializerInterface $serializer): JsonResponse
     {
         $product = $productRepository->find($id);
-        $context = SerializationContext::create()->setGroups(["product:show"]);
-        $json = $serializer->serialize($product, 'json', $context);
+
+        if (!$product) {
+            throw new JsonException("This product don't exist", JsonResponse::HTTP_BAD_REQUEST);
+        }
+        $json = $serializer->serialize($product, 'json');
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;

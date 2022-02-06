@@ -5,9 +5,9 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\PaginationService;
+use App\Service\UserService;
 use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,14 +20,15 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="api_user_index", methods="GET")
      */
-    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $paginator, Request $request): JsonResponse
+    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $pagination,  Request $request): JsonResponse
     {
         /** @var User */
         $connnectedUser = $this->getUser();
-        $query = $userRepository->findByCustomerId($connnectedUser->getId());
-        $result = $paginator->paginate($request, $query, 5);
-        $context = SerializationContext::create()->setGroups(["user:index"]);
-        $json = $serializer->serialize($result, 'json', $context);
+        $users = $userRepository->findByCustomerId($connnectedUser->getId());
+
+        $paginatedCollection = $pagination->paginate($request, $users, 5, 'api_products_index');
+
+        $json = $serializer->serialize($paginatedCollection, 'json');
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;
@@ -36,16 +37,12 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users/{id<\d+>}", name="api_users_show", methods="GET")
      */
-    public function show(UserRepository $userRepository, $id, SerializerInterface $serializer): JsonResponse
+    public function show(UserRepository $userRepository, $id, SerializerInterface $serializer, UserService $userService): JsonResponse
     {
         $user = $userRepository->find($id);
-        /** @var User */
-        $connnectedUser = $this->getUser();
-        if ($connnectedUser->getId() !==  $user->getCustomer()->getId()) {
-            throw new JsonException("you do not have access to this resource", JsonResponse::HTTP_UNAUTHORIZED);
-        }
-        $context = SerializationContext::create()->setGroups(["user:show"]);
-        $json = $serializer->serialize($user, 'json', $context);
+
+        $userService->UserVerif($user);
+        $json = $serializer->serialize($user, 'json');
         $response = new JsonResponse($json, 200, [], true);
 
         return $response;
@@ -54,7 +51,7 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="api_users_add", methods="POST")
      */
-    public function add(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator)
+    public function add(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, UserService $userService)
     {
         /** @var User*/
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
@@ -66,21 +63,13 @@ class UserController extends AbstractController
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
 
-
-        /** @var User */
-        $connnectedUser = $this->getUser();
-
-        if ($connnectedUser->getId() !==  $user->getCustomer()->getId()) {
-            throw new JsonException("You do not have the required rights to make this request", JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
+        $userService->UserVerif($user);
 
         $em->persist($user);
         $em->flush();
 
 
-        $context = SerializationContext::create()->setGroups(array("user:show"));
-        $userJson = $serializer->serialize($user, 'json', $context);
+        $userJson = $serializer->serialize($user, 'json');
 
         $response = new JsonResponse($userJson, 201, [], true);
 
@@ -90,14 +79,11 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users/{id<\d+>}", name="api_users_delete", methods="DELETE")
      */
-    public function delete(int $id, EntityManagerInterface $em, UserRepository $userRepository)
+    public function delete(int $id, EntityManagerInterface $em, UserRepository $userRepository, UserService $userService)
     {
         $user = $userRepository->find($id);
-        /** @var User */
-        $connnectedUser = $this->getUser();
-        if ($connnectedUser->getId() !==  $user->getCustomer()->getId()) {
-            throw new JsonException("You do not have the required rights to make this request", JsonResponse::HTTP_UNAUTHORIZED);
-        }
+
+        $userService->UserVerif($user);
         $em->remove($user);
         $em->flush();
 
