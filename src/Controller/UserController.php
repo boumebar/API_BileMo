@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\CacheService;
 use App\Service\PaginationService;
 use App\Service\UserService;
 use JMS\Serializer\SerializerInterface;
@@ -20,7 +21,7 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="api_user_index", methods="GET")
      */
-    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $pagination,  Request $request): JsonResponse
+    public function index(UserRepository $userRepository, SerializerInterface $serializer, PaginationService $pagination,  Request $request, CacheService $cache): JsonResponse
     {
         /** @var User */
         $connnectedUser = $this->getUser();
@@ -31,7 +32,7 @@ class UserController extends AbstractController
         $json = $serializer->serialize($paginatedCollection, 'json');
         $response = new JsonResponse($json, 200, [], true);
 
-        return $response;
+        return $cache->cache($request, $response);
     }
 
     /**

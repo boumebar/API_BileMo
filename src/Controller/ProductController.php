@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
+use App\Service\CacheService;
 use App\Service\PaginationService;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,14 +18,15 @@ class ProductController extends AbstractController
     /**
      * @Route("/api/products", name="api_products_index", methods="GET")
      */
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $pagination, Request $request): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, PaginationService $pagination, Request $request, CacheService $cache): JsonResponse
     {
         $products = $productRepository->findAll();
 
         $paginatedCollection = $pagination->paginate($request, $products, 5, 'api_products_index');
         $json = $serializer->serialize($paginatedCollection, 'json');
         $response = new JsonResponse($json, 200, [], true);
-        return $response;
+
+        return $cache->cache($request, $response);
     }
 
     /**
