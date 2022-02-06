@@ -14,6 +14,7 @@ security:
                 class: App\Entity\Customer
                 property: email
     firewalls:
+        
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
@@ -32,6 +33,10 @@ security:
             pattern:   ^/api
             stateless: true
             jwt: ~
+            
+        api_doc:
+            pattern: ^/api/doc
+            security: false
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -41,6 +46,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
